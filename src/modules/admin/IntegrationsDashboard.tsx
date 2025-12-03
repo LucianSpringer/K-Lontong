@@ -66,7 +66,7 @@ export const IntegrationsDashboard: React.FC = () => {
                             {platforms.map(p => (
                                 <div key={p} className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between h-32 relative overflow-hidden group">
                                     <div className={`absolute top-0 right-0 p-1 px-3 rounded-bl-lg text-[10px] font-bold ${p === Platform.SHOPEE ? 'bg-orange-500 text-white' :
-                                            p === Platform.GOFOOD ? 'bg-green-500 text-white' : 'bg-black text-white'
+                                        p === Platform.GOFOOD ? 'bg-green-500 text-white' : 'bg-black text-white'
                                         }`}>
                                         ACTIVE
                                     </div>
@@ -88,7 +88,7 @@ export const IntegrationsDashboard: React.FC = () => {
                     {/* Sync Logs */}
                     <div className="bg-black text-green-400 font-mono rounded-2xl p-6 shadow-xl h-64 overflow-y-auto text-xs border border-gray-800">
                         <div className="flex justify-between border-b border-gray-800 pb-2 mb-2">
-                            <span>> SYSTEM_LOGS --tail -f</span>
+                            <span>&gt; SYSTEM_LOGS --tail -f</span>
                             <span className="animate-pulse">_</span>
                         </div>
                         {syncLogs.length === 0 && <span className="opacity-50 text-gray-500">Waiting for events...</span>}
@@ -97,7 +97,7 @@ export const IntegrationsDashboard: React.FC = () => {
                                 <span className="text-gray-500">[{log.time}]</span>
                                 <span className="text-blue-400 mx-2">{log.platform}</span>
                                 <span className={getStatusColor(log.status)}>
-                                    >> {log.status}
+                                    &gt;&gt; {log.status}
                                 </span>
                             </div>
                         ))}
