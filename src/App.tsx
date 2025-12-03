@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { HeroSection } from './components/HeroSection';
 import { ProductShowcase } from './components/ProductShowcase';
-import { OmzetCalculator } from './components/tools/OmzetCalculator';
+import { BusinessStarterCalculator } from './components/tools/BusinessStarterCalculator';
 import { LeadMagnetModal } from './components/marketing/LeadMagnetModal';
 import { TestimonialGrid } from './components/social/TestimonialGrid';
 import { WarungFooter } from './components/layout/WarungFooter';
 import { ScarcityTimer } from './components/marketing/ScarcityTimer';
 import { InventoryDashboard } from './modules/admin/InventoryDashboard';
 import { AnalyticsDashboard } from './modules/admin/AnalyticsDashboard';
+import { TeamSettings } from './modules/settings/TeamSettings';
+import { MarketTrendDashboard } from './modules/admin/MarketTrendDashboard';
+import { PricingMatrix } from './components/marketing/PricingMatrix';
+import { WarungMapVisualizer } from './components/social/WarungMapVisualizer';
+import { BlogResourceGrid } from './components/content/BlogResourceGrid';
+import { NameGenerator, LocationIntelligence } from './components/tools/GeneratorTools';
+import { PointOfSale } from './modules/pos/PointOfSale';
+import { IntegrationsDashboard } from './modules/admin/IntegrationsDashboard';
 
 // [LUMEN NOTE] High-Entropy State Management
 // We lift the state here to allow for future global context expansion
 export const App: React.FC = () => {
     const [isLeadMagnetOpen, setLeadMagnetOpen] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS'>('LANDING');
+    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS'>('LANDING');
 
     // Trigger Lead Magnet on Timer (15s delay)
     useEffect(() => {
@@ -27,6 +35,14 @@ export const App: React.FC = () => {
                 return <InventoryDashboard />;
             case 'ANALYTICS':
                 return <AnalyticsDashboard />;
+            case 'SETTINGS':
+                return <TeamSettings />;
+            case 'MARKET':
+                return <MarketTrendDashboard />;
+            case 'POS':
+                return <PointOfSale />;
+            case 'INTEGRATIONS':
+                return <IntegrationsDashboard />;
             default:
                 return (
                     <>
@@ -87,11 +103,40 @@ export const App: React.FC = () => {
                                 <ProductShowcase />
                             </section>
 
-                            {/* Calculator Section */}
+                            {/* Ecosystem Map */}
+                            <WarungMapVisualizer />
+
+                            {/* Business Starter Calculator */}
                             <section id="calculator" className="bg-white py-20 relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-warung-orange to-warung-yellow"></div>
-                                <OmzetCalculator />
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <BusinessStarterCalculator />
+                                </div>
                             </section>
+
+                            {/* Generator Tools Section */}
+                            <section className="bg-warung-cream py-20">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="text-center mb-12">
+                                        <span className="text-warung-orange font-bold uppercase tracking-widest text-sm">
+                                            <i className="fas fa-tools mr-2"></i>
+                                            Tools Gratis
+                                        </span>
+                                        <h2 className="text-4xl font-heading text-warung-deep-brown mt-4">Tools Gratis Juragan</h2>
+                                        <p className="text-gray-600 mt-2">Bantu persiapan buka warung lebih matang.</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                                        <NameGenerator />
+                                        <LocationIntelligence />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Pricing */}
+                            <PricingMatrix />
+
+                            {/* Blog & Education */}
+                            <BlogResourceGrid />
 
                             {/* Testimonials */}
                             <section id="testimonials">
@@ -168,6 +213,31 @@ export const App: React.FC = () => {
                         className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'ANALYTICS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
                     >
                         Forensics
+                    </button>
+                    <button
+                        onClick={() => setViewMode('MARKET')}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'MARKET' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                    >
+                        <i className="fas fa-bolt mr-1"></i>Tren 2025
+                    </button>
+                    <button
+                        onClick={() => setViewMode('POS')}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'POS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                    >
+                        <i className="fas fa-cash-register mr-1"></i>Kasir
+                    </button>
+                    <button
+                        onClick={() => setViewMode('INTEGRATIONS')}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                    >
+                        <i className="fas fa-plug mr-1"></i>API
+                    </button>
+                    <button
+                        onClick={() => setViewMode('SETTINGS')}
+                        className={`text-xs w-8 h-8 flex items-center justify-center rounded transition-colors ${viewMode === 'SETTINGS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        title="Settings"
+                    >
+                        <i className="fas fa-cog"></i>
                     </button>
                 </div>
             </div>

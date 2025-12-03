@@ -29,18 +29,24 @@ body {
 
 /* Custom Animations */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(255, 107, 53, 0.6);
   }
@@ -51,6 +57,7 @@ body {
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -67,6 +74,16 @@ body {
 
 .animate-slide-in {
   animation: slide-in-right 0.5s ease-out;
+}
+
+/* Custom Scrollbar Hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom Scroll Bar */
