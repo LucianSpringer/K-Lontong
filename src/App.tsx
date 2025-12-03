@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './store/ThemeContext';
 import { HeroSection } from './components/HeroSection';
 import { ProductShowcase } from './components/ProductShowcase';
 import { BusinessStarterCalculator } from './components/tools/BusinessStarterCalculator';
@@ -17,12 +18,16 @@ import { NameGenerator, LocationIntelligence } from './components/tools/Generato
 import { PointOfSale } from './modules/pos/PointOfSale';
 import { IntegrationsDashboard } from './modules/admin/IntegrationsDashboard';
 import { ProcurementDashboard } from './modules/admin/ProcurementDashboard';
+import { FranchiseDashboard } from './modules/admin/FranchiseDashboard';
+import { ARStoreLayout } from './modules/tools/ARStoreLayout';
+import { CompetitorScanner } from './modules/tools/CompetitorScanner';
+import { StoreLayoutEditor } from './modules/tools/StoreLayoutEditor';
 
 // [LUMEN NOTE] High-Entropy State Management
 // We lift the state here to allow for future global context expansion
 export const App: React.FC = () => {
     const [isLeadMagnetOpen, setLeadMagnetOpen] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT'>('LANDING');
+    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT' | 'FRANCHISE' | 'AR' | 'SCANNER' | 'LAYOUT_PRO'>('LANDING');
 
     // Trigger Lead Magnet on Timer (15s delay)
     useEffect(() => {
@@ -46,6 +51,14 @@ export const App: React.FC = () => {
                 return <IntegrationsDashboard />;
             case 'PROCUREMENT':
                 return <ProcurementDashboard />;
+            case 'FRANCHISE':
+                return <FranchiseDashboard />;
+            case 'AR':
+                return <ARStoreLayout />;
+            case 'SCANNER':
+                return <CompetitorScanner />;
+            case 'LAYOUT_PRO':
+                return <StoreLayoutEditor />;
             default:
                 return (
                     <>
@@ -188,70 +201,96 @@ export const App: React.FC = () => {
     };
 
     return (
-        <div className="bg-warung-cream min-h-screen font-sans text-gray-800 scroll-smooth">
-            {/* Global Marketing Header */}
-            <div className="bg-warung-deep-brown text-warung-yellow text-center py-2 text-sm font-bold tracking-wider flex justify-between px-4 items-center">
-                <div className="w-1/3 flex gap-2">
-                    {viewMode !== 'LANDING' && (
+        <ThemeProvider>
+            <div className="bg-warung-cream min-h-screen font-sans text-gray-800 scroll-smooth">
+                {/* Global Marketing Header */}
+                <div className="bg-warung-deep-brown text-warung-yellow text-center py-2 text-sm font-bold tracking-wider flex justify-between px-4 items-center">
+                    <div className="w-1/3 flex gap-2">
+                        {viewMode !== 'LANDING' && (
+                            <button
+                                onClick={() => setViewMode('LANDING')}
+                                className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                            >
+                                <i className="fas fa-arrow-left"></i> Back to Site
+                            </button>
+                        )}
+                    </div>
+
+                    <ScarcityTimer deadline="2025-12-31" label="Workshop Gratis Ditutup Dalam: " />
+
+                    <div className="w-1/3 text-right flex justify-end gap-2">
                         <button
-                            onClick={() => setViewMode('LANDING')}
-                            className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                            onClick={() => setViewMode('INVENTORY')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INVENTORY' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
                         >
-                            <i className="fas fa-arrow-left"></i> Back to Site
+                            Inventory
                         </button>
-                    )}
+                        <button
+                            onClick={() => setViewMode('ANALYTICS')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'ANALYTICS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            Forensics
+                        </button>
+                        <button
+                            onClick={() => setViewMode('MARKET')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'MARKET' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-bolt mr-1"></i>Tren 2025
+                        </button>
+                        <button
+                            onClick={() => setViewMode('POS')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'POS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-cash-register mr-1"></i>Kasir
+                        </button>
+                        <button
+                            onClick={() => setViewMode('INTEGRATIONS')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-plug mr-1"></i>API
+                        </button>
+                        <button
+                            onClick={() => setViewMode('PROCUREMENT')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'PROCUREMENT' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-boxes-packing mr-1"></i> Supply
+                        </button>
+                        <button
+                            onClick={() => setViewMode('FRANCHISE')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'FRANCHISE' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-building mr-1"></i> HQ
+                        </button>
+                        <button
+                            onClick={() => setViewMode('AR')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'AR' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-cube mr-1"></i> AR
+                        </button>
+                        <button
+                            onClick={() => setViewMode('SCANNER')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'SCANNER' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-eye mr-1"></i> Scan
+                        </button>
+                        <button
+                            onClick={() => setViewMode('LAYOUT_PRO')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'LAYOUT_PRO' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-th mr-1"></i> Grid
+                        </button>
+                        <button
+                            onClick={() => setViewMode('SETTINGS')}
+                            className={`text-xs w-8 h-8 flex items-center justify-center rounded transition-colors ${viewMode === 'SETTINGS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                            title="Settings"
+                        >
+                            <i className="fas fa-cog"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <ScarcityTimer deadline="2025-12-31" label="Workshop Gratis Ditutup Dalam: " />
-
-                <div className="w-1/3 text-right flex justify-end gap-2">
-                    <button
-                        onClick={() => setViewMode('INVENTORY')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INVENTORY' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        Inventory
-                    </button>
-                    <button
-                        onClick={() => setViewMode('ANALYTICS')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'ANALYTICS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        Forensics
-                    </button>
-                    <button
-                        onClick={() => setViewMode('MARKET')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'MARKET' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        <i className="fas fa-bolt mr-1"></i>Tren 2025
-                    </button>
-                    <button
-                        onClick={() => setViewMode('POS')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'POS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        <i className="fas fa-cash-register mr-1"></i>Kasir
-                    </button>
-                    <button
-                        onClick={() => setViewMode('INTEGRATIONS')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        <i className="fas fa-plug mr-1"></i>API
-                    </button>
-                    <button
-                        onClick={() => setViewMode('PROCUREMENT')}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'PROCUREMENT' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                    >
-                        <i className="fas fa-boxes-packing mr-1"></i> Supply
-                    </button>
-                    <button
-                        onClick={() => setViewMode('SETTINGS')}
-                        className={`text-xs w-8 h-8 flex items-center justify-center rounded transition-colors ${viewMode === 'SETTINGS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        title="Settings"
-                    >
-                        <i className="fas fa-cog"></i>
-                    </button>
-                </div>
+                {renderContent()}
             </div>
-
-            {renderContent()}
-        </div>
+        </ThemeProvider>
     );
 };
