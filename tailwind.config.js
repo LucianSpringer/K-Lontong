@@ -4,15 +4,17 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
+    darkMode: 'class', // Enable class-based dark mode
     theme: {
         extend: {
             colors: {
-                'warung-orange': '#FF6B35',
-                'warung-yellow': '#FFB800',
-                'warung-teal': '#0D9488',
-                'warung-cream': '#FFF8E7',
-                'warung-brown': '#8B4513',
-                'warung-deep-brown': '#4A2C0B',
+                // [LUMEN FIX] Use CSS Variables for Dynamic Theming
+                'warung-orange': 'var(--warung-primary)',
+                'warung-yellow': 'var(--warung-secondary)',
+                'warung-teal': 'var(--warung-accent)',
+                'warung-cream': 'var(--warung-bg-light)',
+                'warung-brown': 'var(--warung-text-main)',
+                'warung-deep-brown': 'var(--warung-heading)',
             },
             fontFamily: {
                 heading: ['Archivo Black', 'sans-serif'],

@@ -70,4 +70,42 @@ export class TransactionSeeder {
         // Sort by date descending (O(n log n) operation complexity)
         return history.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     }
+
+    /**
+     * Generates a multi-year dataset with seasonal trends
+     */
+    public static generateMultiYear(years: number, skus: SKU[]): any[] {
+        const data = [];
+        const startDate = new Date();
+        startDate.setFullYear(startDate.getFullYear() - years);
+
+        for (let i = 0; i < years * 365; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+
+            // Seasonality Logic
+            const month = currentDate.getMonth();
+            let seasonalMultiplier = 1.0;
+
+            // Ramadan/Lebaran Spike (Approx April/May for simulation)
+            if (month === 3 || month === 4) seasonalMultiplier = 1.5;
+            // End of Year Spike
+            if (month === 11) seasonalMultiplier = 1.3;
+
+            const dailyTxCount = Math.floor((Math.random() * 20 + 10) * seasonalMultiplier);
+
+            for (let j = 0; j < dailyTxCount; j++) {
+                // Generate basic TX structure
+                const items = this.generateBasket(skus);
+                const total = items.reduce((acc, curr) => acc + (curr.priceAtSale * curr.qty), 0);
+
+                data.push({
+                    date: currentDate.toISOString().split('T')[0],
+                    amount: total
+                });
+            }
+        }
+        return data;
+    }
 }
+

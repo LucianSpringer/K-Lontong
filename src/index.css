@@ -2,15 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* [LUMEN STRATEGY] CSS Variables Layer for Theming */
 :root {
-  --warung-orange: #FF6B35;
-  --warung-yellow: #FFB800;
-  --warung-teal: #0D9488;
-  --warung-cream: #FFF8E7;
-  --warung-brown: #8B4513;
-  --warung-deep-brown: #4A2C0B;
+  /* Base / Default Theme (Orange & Yellow) */
+  --warung-primary: #FF6B35;
+  /* Orange */
+  --warung-secondary: #FFB800;
+  /* Yellow */
+  --warung-accent: #0D9488;
+  /* Teal */
+  --warung-bg-light: #FFF8E7;
+  /* Cream */
+  --warung-text-main: #8B4513;
+  /* Brown */
+  --warung-heading: #4A2C0B;
+  /* Deep Brown */
 }
 
+/* Theme: Tosca (Fresh / Modern) */
+.theme-tosca {
+  --warung-primary: #14B8A6;
+  /* Teal-500 */
+  --warung-secondary: #2DD4BF;
+  /* Teal-400 */
+  --warung-accent: #F59E0B;
+  /* Amber (Contrast) */
+  --warung-bg-light: #F0FDFA;
+  /* Azure */
+  --warung-text-main: #134E4A;
+  /* Dark Teal */
+  --warung-heading: #042F2E;
+  /* Darker Teal */
+}
+
+/* Theme: Maroon (Traditional / Warm) */
+.theme-maroon {
+  --warung-primary: #9F1239;
+  /* Rose-800 */
+  --warung-secondary: #E11D48;
+  /* Rose-600 */
+  --warung-accent: #FBBF24;
+  /* Amber */
+  --warung-bg-light: #FFF1F2;
+  /* Pinkish White */
+  --warung-text-main: #881337;
+  /* Dark Rose */
+  --warung-heading: #4C0519;
+  /* Deep Rose */
+}
+
+/* Theme: Indomart Blue (Corporate / Cold) */
+.theme-indomart_blue {
+  --warung-primary: #2563EB;
+  /* Blue-600 */
+  --warung-secondary: #EF4444;
+  /* Red (Indomaret style) */
+  --warung-accent: #FACC15;
+  /* Yellow */
+  --warung-bg-light: #EFF6FF;
+  /* Blueish White */
+  --warung-text-main: #1E3A8A;
+  /* Dark Blue */
+  --warung-heading: #172554;
+  /* Deep Blue */
+}
+
+/* Dark Mode Overrides (Applied on top of any theme) */
+.dark {
+  --warung-bg-light: #111827;
+  /* Gray-900 */
+  --warung-text-main: #D1D5DB;
+  /* Gray-300 */
+  --warung-heading: #F9FAFB;
+  /* Gray-50 */
+
+  /* Adjust primary colors slightly for dark mode visibility if needed */
+  /* --warung-primary: #FF885B; */
+}
+
+/* Standard Resets & Animations */
 * {
   margin: 0;
   padding: 0;
@@ -25,6 +95,11 @@ body {
   font-family: 'Poppins', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--warung-bg-light);
+  /* Bind body bg */
+  color: var(--warung-text-main);
+  /* Bind body text */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom Animations */
@@ -76,7 +151,7 @@ body {
   animation: slide-in-right 0.5s ease-out;
 }
 
-/* Custom Scrollbar Hide */
+/* Utility: Scrollbar Hide */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -86,7 +161,7 @@ body {
   scrollbar-width: none;
 }
 
-/* Custom Scroll Bar */
+/* Utility: Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -96,32 +171,27 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--warung-orange);
+  background: var(--warung-primary);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--warung-brown);
+  background: var(--warung-text-main);
 }
 
-/* Input Focus Styles */
-input:focus,
-textarea:focus {
-  outline: none;
-}
-
-/* Utility Classes */
+/* Utility: Gradient Text */
 .text-gradient {
-  background: linear-gradient(135deg, var(--warung-orange), var(--warung-yellow));
+  background: linear-gradient(135deg, var(--warung-primary), var(--warung-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .bg-gradient-warung {
-  background: linear-gradient(135deg, var(--warung-orange), var(--warung-yellow));
+  background: linear-gradient(135deg, var(--warung-primary), var(--warung-secondary));
 }
 
 .shadow-warung {
-  box-shadow: 0 10px 40px rgba(255, 107, 53, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  /* Softer shadow for general use */
 }

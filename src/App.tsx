@@ -22,12 +22,35 @@ import { FranchiseDashboard } from './modules/admin/FranchiseDashboard';
 import { ARStoreLayout } from './modules/tools/ARStoreLayout';
 import { CompetitorScanner } from './modules/tools/CompetitorScanner';
 import { StoreLayoutEditor } from './modules/tools/StoreLayoutEditor';
+import { WarungIQDashboard } from './modules/admin/WarungIQDashboard';
+import { SupplierDashboard } from './modules/admin/SupplierDashboard';
+import { ExpenseDashboard } from './modules/admin/ExpenseDashboard';
+import { ProfitSimulator } from './components/marketing/ProfitSimulator';
+import { AIChatAdvisor } from './components/marketing/AIChatAdvisor';
+import { DynamicTestimonials } from './components/social/DynamicTestimonials';
+import { TrustStack } from './components/marketing/TrustStack';
+import { CommandPalette } from './components/layout/CommandPalette';
+import { DeveloperConsole } from './modules/developer/DeveloperConsole';
+import { AuditReplay } from './modules/developer/AuditReplay';
 
 // [LUMEN NOTE] High-Entropy State Management
 // We lift the state here to allow for future global context expansion
 export const App: React.FC = () => {
     const [isLeadMagnetOpen, setLeadMagnetOpen] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT' | 'FRANCHISE' | 'AR' | 'SCANNER' | 'LAYOUT_PRO'>('LANDING');
+    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT' | 'FRANCHISE' | 'AR' | 'SCANNER' | 'LAYOUT_PRO' | 'WARUNG_IQ' | 'SUPPLIERS' | 'EXPENSES' | 'DEV_CONSOLE' | 'AUDIT_REPLAY'>('LANDING');
+    const [isCmdOpen, setIsCmdOpen] = useState(false);
+
+    // Keyboard Listener for Ctrl+K
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsCmdOpen(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // Trigger Lead Magnet on Timer (15s delay)
     useEffect(() => {
@@ -37,28 +60,22 @@ export const App: React.FC = () => {
 
     const renderContent = () => {
         switch (viewMode) {
-            case 'INVENTORY':
-                return <InventoryDashboard />;
-            case 'ANALYTICS':
-                return <AnalyticsDashboard />;
-            case 'SETTINGS':
-                return <TeamSettings />;
-            case 'MARKET':
-                return <MarketTrendDashboard />;
-            case 'POS':
-                return <PointOfSale />;
-            case 'INTEGRATIONS':
-                return <IntegrationsDashboard />;
-            case 'PROCUREMENT':
-                return <ProcurementDashboard />;
-            case 'FRANCHISE':
-                return <FranchiseDashboard />;
-            case 'AR':
-                return <ARStoreLayout />;
-            case 'SCANNER':
-                return <CompetitorScanner />;
-            case 'LAYOUT_PRO':
-                return <StoreLayoutEditor />;
+            case 'INVENTORY': return <InventoryDashboard />;
+            case 'ANALYTICS': return <AnalyticsDashboard />;
+            case 'SETTINGS': return <TeamSettings />;
+            case 'MARKET': return <MarketTrendDashboard />;
+            case 'POS': return <PointOfSale />;
+            case 'INTEGRATIONS': return <IntegrationsDashboard />;
+            case 'PROCUREMENT': return <ProcurementDashboard />;
+            case 'FRANCHISE': return <FranchiseDashboard />;
+            case 'AR': return <ARStoreLayout />;
+            case 'SCANNER': return <CompetitorScanner />;
+            case 'LAYOUT_PRO': return <StoreLayoutEditor />;
+            case 'WARUNG_IQ': return <WarungIQDashboard />;
+            case 'SUPPLIERS': return <SupplierDashboard />;
+            case 'EXPENSES': return <ExpenseDashboard />;
+            case 'DEV_CONSOLE': return <DeveloperConsole />;
+            case 'AUDIT_REPLAY': return <AuditReplay />;
             default:
                 return (
                     <>
@@ -130,6 +147,40 @@ export const App: React.FC = () => {
                                 </div>
                             </section>
 
+                            {/* NEW: Profit Simulator Section */}
+                            <section className="py-20 bg-gray-50">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="flex flex-col lg:flex-row gap-12 items-center">
+                                        <div className="lg:w-1/2">
+                                            <h2 className="text-4xl font-heading text-warung-deep-brown mb-6">Hitung Potensi Cuan Warungmu</h2>
+                                            <p className="text-gray-600 mb-8">Gunakan simulator cerdas kami untuk melihat proyeksi keuntungan berdasarkan lokasi dan modal. Data akurat, hasil instan.</p>
+
+                                            {/* Dynamic Testimonials Widget */}
+                                            <DynamicTestimonials />
+                                        </div>
+                                        <div className="lg:w-1/2 w-full">
+                                            <ProfitSimulator />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* NEW: AI Advisor Section */}
+                            <section className="py-20 bg-white overflow-hidden relative">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="flex flex-col md:flex-row items-center gap-12">
+                                        <div className="md:w-1/2 order-2 md:order-1">
+                                            <AIChatAdvisor />
+                                        </div>
+                                        <div className="md:w-1/2 order-1 md:order-2">
+                                            <span className="text-warung-teal font-bold uppercase tracking-widest text-sm">24/7 Support</span>
+                                            <h2 className="text-4xl font-heading text-warung-deep-brown mt-4 mb-6">Bingung Mulai Dari Mana?</h2>
+                                            <p className="text-gray-600">Asisten pintar kami siap membantu Anda memilih paket dan strategi terbaik untuk memulai bisnis warung modern.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
                             {/* Generator Tools Section */}
                             <section className="bg-warung-cream py-20">
                                 <div className="max-w-7xl mx-auto px-4">
@@ -187,34 +238,26 @@ export const App: React.FC = () => {
                                     </div>
                                 </div>
                             </section>
+
+                            {/* Trust Stack (Place before Footer) */}
+                            <TrustStack />
                         </main>
 
                         <WarungFooter />
 
                         {/* Modal Overlay */}
-                        {isLeadMagnetOpen && (
-                            <LeadMagnetModal isOpen={isLeadMagnetOpen} onClose={() => setLeadMagnetOpen(false)} />
-                        )}
+                        {
+                            isLeadMagnetOpen && (
+                                <LeadMagnetModal isOpen={isLeadMagnetOpen} onClose={() => setLeadMagnetOpen(false)} />
+                            )
+                        }
                     </>
-                );
-        }
-    };
-
-    return (
-        <ThemeProvider>
-            <div className="bg-warung-cream min-h-screen font-sans text-gray-800 scroll-smooth">
-                {/* Global Marketing Header */}
-                <div className="bg-warung-deep-brown text-warung-yellow text-center py-2 text-sm font-bold tracking-wider flex justify-between px-4 items-center">
-                    <div className="w-1/3 flex gap-2">
-                        {viewMode !== 'LANDING' && (
-                            <button
-                                onClick={() => setViewMode('LANDING')}
-                                className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors flex items-center gap-1"
-                            >
-                                <i className="fas fa-arrow-left"></i> Back to Site
-                            </button>
+                                className = "text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                    >
+                    <i className="fas fa-arrow-left"></i> Back to Site
+                            </button >
                         )}
-                    </div>
+                    </div >
 
                     <ScarcityTimer deadline="2025-12-31" label="Workshop Gratis Ditutup Dalam: " />
 
@@ -230,6 +273,12 @@ export const App: React.FC = () => {
                             className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'ANALYTICS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
                         >
                             Forensics
+                        </button>
+                        <button
+                            onClick={() => setViewMode('WARUNG_IQ')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'WARUNG_IQ' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-brain mr-1"></i> IQ
                         </button>
                         <button
                             onClick={() => setViewMode('MARKET')}
@@ -248,6 +297,18 @@ export const App: React.FC = () => {
                             className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
                         >
                             <i className="fas fa-plug mr-1"></i>API
+                        </button>
+                        <button
+                            onClick={() => setViewMode('SUPPLIERS')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'SUPPLIERS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-truck mr-1"></i> Sup
+                        </button>
+                        <button
+                            onClick={() => setViewMode('EXPENSES')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'EXPENSES' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                        >
+                            <i className="fas fa-wallet mr-1"></i> Exp
                         </button>
                         <button
                             onClick={() => setViewMode('PROCUREMENT')}
@@ -287,10 +348,10 @@ export const App: React.FC = () => {
                             <i className="fas fa-cog"></i>
                         </button>
                     </div>
-                </div>
+                </div >
 
-                {renderContent()}
-            </div>
-        </ThemeProvider>
+    { renderContent() }
+            </div >
+        </ThemeProvider >
     );
 };

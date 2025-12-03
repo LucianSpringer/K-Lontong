@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Role, Permission, ROLE_PERMISSIONS, AccessControl } from '../../core/security/AccessControl';
 import { AuditLogger, AuditLog } from '../../core/security/AuditLogger';
-import { useTheme } from '../../store/ThemeContext'; // Import Hook
+import { useTheme } from '../../store/ThemeContext';
+import { BackupService } from '../../core/services/BackupService'; // Import
 
 interface TeamMember {
     id: string;
@@ -19,10 +20,11 @@ const MOCK_TEAM: TeamMember[] = [
 ];
 
 export const TeamSettings: React.FC = () => {
-    const { theme, mode, setTheme, toggleMode } = useTheme(); // Use Context
+    const { theme, mode, setTheme, toggleMode } = useTheme();
     const [members, setMembers] = useState<TeamMember[]>(MOCK_TEAM);
     const [selectedRole, setSelectedRole] = useState<Role>(Role.OWNER);
     const [logs, setLogs] = useState<AuditLog[]>([]);
+    const restoreInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
     useEffect(() => {
         setLogs(AuditLogger.getLogs());
@@ -44,6 +46,33 @@ export const TeamSettings: React.FC = () => {
         }));
     };
 
+    // NEW: Handle Backup
+    const handleBackup = async () => {
+        const blob = await BackupService.generateBackup();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `klontong_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // NEW: Handle Restore
+    const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (confirm("PERINGATAN: Restore akan menimpa data lokal saat ini. Lanjutkan?")) {
+            try {
+                await BackupService.restoreBackup(file);
+                alert("Restore Berhasil! Halaman akan direfresh.");
+                window.location.reload();
+            } catch (err) {
+                alert("Gagal Restore File: Format Salah.");
+            }
+        }
+    };
+
     return (
         <div className="bg-gray-50 p-8 rounded-3xl min-h-screen animate-slide-in space-y-8 dark:bg-gray-900 transition-colors duration-300">
             <header className="flex justify-between items-center">
@@ -56,55 +85,51 @@ export const TeamSettings: React.FC = () => {
                 </div>
             </header>
 
-            {/* NEW: Appearance Control Panel */}
+            {/* NEW: Data Management Panel */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+                    <i className="fas fa-database text-warung-orange"></i> Data Management
+                </h3>
+                <div className="flex gap-4">
+                    <button
+                        onClick={handleBackup}
+                        className="px-6 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-2"
+                    >
+                        <i className="fas fa-download"></i> Download Backup
+                    </button>
+
+                    <input
+                        type="file"
+                        ref={restoreInputRef}
+                        className="hidden"
+                        accept=".json"
+                        onChange={handleRestore}
+                    />
+                    <button
+                        onClick={() => restoreInputRef.current?.click()}
+                        className="px-6 py-3 rounded-xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-2"
+                    >
+                        <i className="fas fa-upload"></i> Restore Data
+                    </button>
+                </div>
+            </div>
+
+            {/* Appearance Control Panel (Existing) */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
                 <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
                     <i className="fas fa-palette text-warung-teal"></i> App Appearance
                 </h3>
                 <div className="flex flex-col md:flex-row gap-6 items-center">
-
-                    {/* Dark Mode Toggle */}
-                    <button
-                        onClick={toggleMode}
-                        className={`flex items-center gap-3 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'DARK' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-800'
-                            }`}
-                    >
+                    <button onClick={toggleMode} className={`flex items-center gap-3 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'DARK' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-800'}`}>
                         {mode === 'DARK' ? <i className="fas fa-moon"></i> : <i className="fas fa-sun"></i>}
                         {mode === 'DARK' ? 'Dark Mode On' : 'Light Mode'}
                     </button>
-
                     <div className="h-8 w-px bg-gray-200 dark:bg-gray-600 hidden md:block"></div>
-
-                    {/* Theme Selector */}
                     <div className="flex gap-3">
-                        <button
-                            onClick={() => setTheme('DEFAULT')}
-                            className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'DEFAULT' ? 'border-warung-orange text-warung-orange bg-orange-50' : 'border-transparent text-gray-500 hover:bg-gray-100'
-                                }`}
-                        >
-                            🟠 Default
-                        </button>
-                        <button
-                            onClick={() => setTheme('TOSCA')}
-                            className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'TOSCA' ? 'border-teal-500 text-teal-500 bg-teal-50' : 'border-transparent text-gray-500 hover:bg-gray-100'
-                                }`}
-                        >
-                            🟢 Tosca
-                        </button>
-                        <button
-                            onClick={() => setTheme('MAROON')}
-                            className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'MAROON' ? 'border-red-800 text-red-800 bg-red-50' : 'border-transparent text-gray-500 hover:bg-gray-100'
-                                }`}
-                        >
-                            🔴 Maroon
-                        </button>
-                        <button
-                            onClick={() => setTheme('INDOMART_BLUE')}
-                            className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'INDOMART_BLUE' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100'
-                                }`}
-                        >
-                            🔵 IndoBlue
-                        </button>
+                        <button onClick={() => setTheme('DEFAULT')} className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'DEFAULT' ? 'border-warung-orange text-warung-orange bg-orange-50' : 'border-transparent text-gray-500 hover:bg-gray-100'}`}>Default</button>
+                        <button onClick={() => setTheme('TOSCA')} className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'TOSCA' ? 'border-teal-500 text-teal-500 bg-teal-50' : 'border-transparent text-gray-500 hover:bg-gray-100'}`}>Tosca</button>
+                        <button onClick={() => setTheme('MAROON')} className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'MAROON' ? 'border-red-800 text-red-800 bg-red-50' : 'border-transparent text-gray-500 hover:bg-gray-100'}`}>Maroon</button>
+                        <button onClick={() => setTheme('INDOMART_BLUE')} className={`px-4 py-2 rounded-lg border-2 font-bold text-sm ${theme === 'INDOMART_BLUE' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100'}`}>IndoBlue</button>
                     </div>
                 </div>
             </div>

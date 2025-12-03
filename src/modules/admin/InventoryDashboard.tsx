@@ -1,23 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { InventoryItem, StockStatus, SKU } from '../../core/types/InventoryTypes';
+import { DataImportEngine } from '../../core/engines/DataImportEngine';
 
-// Mock Data Generator (In production, fetch this)
+// Mock Data Generator
 const MOCK_INVENTORY: InventoryItem[] = Array.from({ length: 50 }).map((_, i) => ({
     sku: `SKU-${1000 + i}` as unknown as SKU,
     name: `Warung Item #${i + 1}`,
     category: i % 3 === 0 ? 'FROZEN' : 'DRY_GOODS',
     purchasePrice: 10000 + (i * 500),
     retailPrice: 12500 + (i * 600),
-    margin: 0, // To be calculated
+    margin: 0,
     currentStock: Math.floor(Math.random() * 100),
     reorderPoint: 20,
     status: Math.random() > 0.8 ? StockStatus.CRITICAL : StockStatus.HEALTHY,
-    metadata: {
-        shelfLifeDays: 365,
-        volumetricWeight: 0.5,
-        supplierLeadTime: 24,
-        demandElasticity: 0.8
-    },
+    metadata: { shelfLifeDays: 365, volumetricWeight: 0.5, supplierLeadTime: 24, demandElasticity: 0.8 },
     lastRestock: new Date(),
     supplierId: 'SUP-001' as any
 }));
@@ -25,34 +21,49 @@ const MOCK_INVENTORY: InventoryItem[] = Array.from({ length: 50 }).map((_, i) =>
 export const InventoryDashboard: React.FC = () => {
     const [filter, setFilter] = useState<StockStatus | 'ALL'>('ALL');
     const [sortKey, setSortKey] = useState<keyof InventoryItem>('currentStock');
+    const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INVENTORY);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Algorithmic Density: Client-side sorting & filtering logic
     const processedData = useMemo(() => {
-        let data = [...MOCK_INVENTORY];
-
-        // 1. Calculate Real-time Margins
+        let data = [...inventory];
+        // Calculate Real-time Margins
         data = data.map(item => ({
             ...item,
             margin: ((item.retailPrice - item.purchasePrice) / item.retailPrice) * 100
         }));
-
-        // 2. Apply Filters
-        if (filter !== 'ALL') {
-            data = data.filter(item => item.status === filter);
-        }
-
-        // 3. Sort
+        // Filter
+        if (filter !== 'ALL') data = data.filter(item => item.status === filter);
+        // Sort
         data.sort((a, b) => {
             const valA = a[sortKey];
             const valB = b[sortKey];
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                return valB - valA; // Descending
-            }
+            if (typeof valA === 'number' && typeof valB === 'number') return valB - valA;
             return 0;
         });
-
         return data;
-    }, [filter, sortKey]);
+    }, [filter, sortKey, inventory]);
+
+    // Handle CSV Import
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            const result = DataImportEngine.parseCSV(text);
+
+            if (result.success) {
+                // Merge new items into state
+                setInventory(prev => [...result.data as InventoryItem[], ...prev]);
+                alert(`Berhasil import ${result.data.length} barang!`);
+            } else {
+                alert(`Gagal: ${result.errors.join('\n')}`);
+            }
+        };
+        reader.readAsText(file);
+    };
 
     return (
         <div className="bg-gray-50 p-8 rounded-3xl min-h-screen animate-slide-in">
@@ -62,18 +73,21 @@ export const InventoryDashboard: React.FC = () => {
                     <p className="text-gray-500">Real-time stock monitoring & margin analysis.</p>
                 </div>
                 <div className="flex gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept=".csv"
+                        onChange={handleFileUpload}
+                    />
                     <button
-                        onClick={() => setFilter('ALL')}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${filter === 'ALL' ? 'bg-warung-teal text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 rounded-lg font-bold bg-warung-brown text-white shadow-lg hover:bg-brown-800 transition"
                     >
-                        All
+                        <i className="fas fa-file-import mr-2"></i> Import CSV
                     </button>
-                    <button
-                        onClick={() => setFilter(StockStatus.CRITICAL)}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${filter === StockStatus.CRITICAL ? 'bg-red-500 text-white shadow-lg' : 'bg-white text-red-500 hover:bg-red-50'}`}
-                    >
-                        Critical Low
-                    </button>
+                    <button onClick={() => setFilter('ALL')} className={`px-4 py-2 rounded-lg font-bold ${filter === 'ALL' ? 'bg-warung-teal text-white' : 'bg-white text-gray-600'}`}>All</button>
+                    <button onClick={() => setFilter(StockStatus.CRITICAL)} className={`px-4 py-2 rounded-lg font-bold ${filter === StockStatus.CRITICAL ? 'bg-red-500 text-white' : 'bg-white text-red-500'}`}>Critical Low</button>
                 </div>
             </div>
 
@@ -84,9 +98,7 @@ export const InventoryDashboard: React.FC = () => {
                             <tr>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">SKU</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Product Name</th>
-                                <th className="p-4 font-bold text-gray-500 text-sm uppercase cursor-pointer hover:text-warung-orange transition-colors" onClick={() => setSortKey('currentStock')}>
-                                    Stock <i className="fas fa-sort ml-1"></i>
-                                </th>
+                                <th className="p-4 font-bold text-gray-500 text-sm uppercase cursor-pointer" onClick={() => setSortKey('currentStock')}>Stock <i className="fas fa-sort ml-1"></i></th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Margin (%)</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Status</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Action</th>
@@ -99,27 +111,18 @@ export const InventoryDashboard: React.FC = () => {
                                     <td className="p-4 font-bold text-gray-700">{item.name}</td>
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
-                                            <span className={`font-bold ${item.currentStock < item.reorderPoint ? 'text-red-500' : 'text-green-600'}`}>
-                                                {item.currentStock}
-                                            </span>
+                                            <span className={`font-bold ${item.currentStock < item.reorderPoint ? 'text-red-500' : 'text-green-600'}`}>{item.currentStock}</span>
                                             <span className="text-xs text-gray-400">/ {item.reorderPoint}</span>
                                         </div>
                                     </td>
-                                    <td className="p-4 font-mono">
-                                        {item.margin.toFixed(1)}%
-                                    </td>
+                                    <td className="p-4 font-mono">{item.margin.toFixed(1)}%</td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-bold ${item.status === StockStatus.CRITICAL ? 'bg-red-100 text-red-600' :
-                                                item.status === StockStatus.HEALTHY ? 'bg-green-100 text-green-600' :
-                                                    'bg-gray-100 text-gray-600'
-                                            }`}>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold ${item.status === StockStatus.CRITICAL ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
                                             {item.status.replace('_', ' ')}
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <button className="text-warung-teal hover:text-teal-700 font-bold text-sm transition-colors">
-                                            Restock
-                                        </button>
+                                        <button className="text-warung-teal hover:text-teal-700 font-bold text-sm">Restock</button>
                                     </td>
                                 </tr>
                             ))}
