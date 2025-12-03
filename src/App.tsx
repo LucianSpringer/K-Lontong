@@ -16,12 +16,13 @@ import { BlogResourceGrid } from './components/content/BlogResourceGrid';
 import { NameGenerator, LocationIntelligence } from './components/tools/GeneratorTools';
 import { PointOfSale } from './modules/pos/PointOfSale';
 import { IntegrationsDashboard } from './modules/admin/IntegrationsDashboard';
+import { ProcurementDashboard } from './modules/admin/ProcurementDashboard';
 
 // [LUMEN NOTE] High-Entropy State Management
 // We lift the state here to allow for future global context expansion
 export const App: React.FC = () => {
     const [isLeadMagnetOpen, setLeadMagnetOpen] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS'>('LANDING');
+    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT'>('LANDING');
 
     // Trigger Lead Magnet on Timer (15s delay)
     useEffect(() => {
@@ -43,6 +44,8 @@ export const App: React.FC = () => {
                 return <PointOfSale />;
             case 'INTEGRATIONS':
                 return <IntegrationsDashboard />;
+            case 'PROCUREMENT':
+                return <ProcurementDashboard />;
             default:
                 return (
                     <>
@@ -231,6 +234,12 @@ export const App: React.FC = () => {
                         className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
                     >
                         <i className="fas fa-plug mr-1"></i>API
+                    </button>
+                    <button
+                        onClick={() => setViewMode('PROCUREMENT')}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'PROCUREMENT' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
+                    >
+                        <i className="fas fa-boxes-packing mr-1"></i> Supply
                     </button>
                     <button
                         onClick={() => setViewMode('SETTINGS')}

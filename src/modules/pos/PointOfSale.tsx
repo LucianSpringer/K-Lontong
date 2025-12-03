@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { OfflinePersistence, OfflineTransaction } from '../../core/offline/OfflinePersistence';
+import { CreditRiskEngine, CreditVerdict } from '../../core/engines/CreditRiskEngine';
 
 // Mock Product DB (In production, connect to InventoryStore)
 const PRODUCTS = [
@@ -13,6 +14,17 @@ const PRODUCTS = [
     { sku: 'SKU-008', name: 'Kopi Kapal  Api', price: 12500 },
 ];
 
+// Mock Customer Profile for Kasbon
+const MOCK_CUSTOMER = {
+    id: 'CUST-001',
+    name: 'Pak RT',
+    joinDate: new Date('2023-01-01'),
+    totalSpend: 15000000,
+    currentDebt: 50000,
+    repaymentHistory: [5, 2, 3, 4], // Days to repay
+    latePayments: 0
+};
+
 interface CartItem {
     sku: string;
     name: string;
@@ -25,6 +37,10 @@ export const PointOfSale: React.FC = () => {
     const [search, setSearch] = useState('');
     const [dbStatus, setDbStatus] = useState<'INIT' | 'READY' | 'ERROR'>('INIT');
     const [persistence] = useState(new OfflinePersistence());
+
+    // NEW: Credit State
+    const [showCreditModal, setShowCreditModal] = useState(false);
+    const [creditVerdict, setCreditVerdict] = useState<CreditVerdict | null>(null);
 
     // Initialize Offline DB on Mount
     useEffect(() => {
@@ -49,7 +65,14 @@ export const PointOfSale: React.FC = () => {
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-    const handleCheckout = async () => {
+    // NEW: Assess Credit Risk when Modal opens
+    const handleCreditCheck = () => {
+        const verdict = CreditRiskEngine.assess(MOCK_CUSTOMER, total);
+        setCreditVerdict(verdict);
+        setShowCreditModal(true);
+    };
+
+    const handleCheckout = async (method: 'CASH' | 'KASBON') => {
         if (cart.length === 0) return;
 
         const tx: OfflineTransaction = {
@@ -57,16 +80,17 @@ export const PointOfSale: React.FC = () => {
             timestamp: Date.now(),
             items: JSON.stringify(cart),
             total,
-            paymentMethod: 'CASH',
+            paymentMethod: method,
             synced: 0
         };
 
         try {
             await persistence.saveTransaction(tx);
-            alert(`✅ Transaksi Disimpan (Offline Mode)\nTotal: Rp ${total.toLocaleString()}`);
+            alert(`✅ Transaksi ${method} Berhasil\nTotal: Rp ${total.toLocaleString()}`);
             setCart([]);
+            setShowCreditModal(false);
         } catch (e) {
-            alert('❌ Gagal menyimpan transaksi');
+            alert('❌ Error Saving Transaction');
         }
     };
 
@@ -166,13 +190,11 @@ export const PointOfSale: React.FC = () => {
                 {/* Total & Actions */}
                 <div className="p-6 bg-gray-50 border-t border-gray-200">
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-                        <span className="text-gray-500 uppercase font-bold text-xs tracking-wider">Total Tagihan</span>
-                        <span className="text-4xl font-heading text-warung-deep-brown font-mono">
-                            {total.toLocaleString()}
-                        </span>
+                        <span className="text-gray-500 uppercase font-bold text-xs tracking-wider">Total</span>
+                        <span className="text-4xl font-heading text-warung-deep-brown font-mono">{total.toLocaleString()}</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
                         <button
                             className="bg-yellow-100 text-yellow-700 py-3 rounded-xl font-bold hover:bg-yellow-200 transition text-sm disabled:opacity-50"
                             disabled={cart.length === 0}
@@ -187,15 +209,58 @@ export const PointOfSale: React.FC = () => {
                             <i className="fas fa-trash mr-2"></i> Batal
                         </button>
                     </div>
-                    <button
-                        onClick={handleCheckout}
-                        disabled={cart.length === 0 || dbStatus !== 'READY'}
-                        className="w-full mt-3 bg-warung-teal text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-teal-700 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <i className="fas fa-cash-register mr-2"></i> Bayar Sekarang
-                    </button>
+
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                        <button onClick={() => handleCheckout('CASH')} className="bg-green-100 text-green-800 py-3 rounded-xl font-bold hover:bg-green-200">
+                            <i className="fas fa-money-bill-wave mr-2"></i> CASH
+                        </button>
+                        <button onClick={handleCreditCheck} className="bg-purple-100 text-purple-800 py-3 rounded-xl font-bold hover:bg-purple-200">
+                            <i className="fas fa-book-open mr-2"></i> KASBON
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Credit Risk Modal */}
+            {showCreditModal && creditVerdict && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-slide-in">
+                        <div className="text-center mb-6">
+                            <h3 className="text-2xl font-heading text-warung-deep-brown">Analisa Kredit</h3>
+                            <p className="text-gray-500">Customer: {MOCK_CUSTOMER.name}</p>
+                        </div>
+
+                        <div className="space-y-4 mb-8">
+                            <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
+                                <span className="text-gray-600">Risk Score</span>
+                                <span className={`font-bold ${creditVerdict.riskScore > 75 ? 'text-green-500' : 'text-yellow-500'
+                                    }`}>{creditVerdict.riskScore}/100</span>
+                            </div>
+                            <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
+                                <span className="text-gray-600">Max Limit</span>
+                                <span className="font-mono font-bold">Rp {creditVerdict.maxLimit.toLocaleString()}</span>
+                            </div>
+                            <div className={`p-4 rounded-xl text-center font-bold text-sm ${creditVerdict.canGrant ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                }`}>
+                                {creditVerdict.reason}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <button onClick={() => setShowCreditModal(false)} className="py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100">
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => handleCheckout('KASBON')}
+                                disabled={!creditVerdict.canGrant}
+                                className="py-3 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                ACC Kasbon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
