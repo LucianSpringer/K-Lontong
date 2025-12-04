@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { OfflinePersistence, OfflineTransaction } from '../../core/offline/OfflinePersistence';
 import { CreditRiskEngine, CreditVerdict } from '../../core/engines/CreditRiskEngine';
+import { VoiceCommandKernel } from '../../core/ai/VoiceCommandKernel';
+
+import { SKU } from '../../core/types/InventoryTypes';
 
 // Mock Product DB (In production, connect to InventoryStore)
 const PRODUCTS = [
-    { sku: 'SKU-001', name: 'Indomie Goreng', price: 3500 },
-    { sku: 'SKU-002', name: 'Telur Ayam (kg)', price: 28000 },
-    { sku: 'SKU-003', name: 'Minyak Goreng 1L', price: 14500 },
-    { sku: 'SKU-004', name: 'Aqua Galon', price: 21000 },
-    { sku: 'SKU-005', name: 'Rokok Surya 12', price: 23000 },
-    { sku: 'SKU-006', name: 'Beras Premium 5kg', price: 68000 },
-    { sku: 'SKU-007', name: 'Gula Pasir 1kg', price: 15000 },
-    { sku: 'SKU-008', name: 'Kopi Kapal  Api', price: 12500 },
+    { sku: 'SKU-001' as SKU, name: 'Indomie Goreng', price: 3500 },
+    { sku: 'SKU-002' as SKU, name: 'Telur Ayam (kg)', price: 28000 },
+    { sku: 'SKU-003' as SKU, name: 'Minyak Goreng 1L', price: 14500 },
+    { sku: 'SKU-004' as SKU, name: 'Aqua Galon', price: 21000 },
+    { sku: 'SKU-005' as SKU, name: 'Rokok Surya 12', price: 23000 },
+    { sku: 'SKU-006' as SKU, name: 'Beras Premium 5kg', price: 68000 },
+    { sku: 'SKU-007' as SKU, name: 'Gula Pasir 1kg', price: 15000 },
+    { sku: 'SKU-008' as SKU, name: 'Kopi Kapal  Api', price: 12500 },
 ];
 
 // Mock Customer Profile for Kasbon
@@ -37,6 +40,7 @@ export const PointOfSale: React.FC = () => {
     const [search, setSearch] = useState('');
     const [dbStatus, setDbStatus] = useState<'INIT' | 'READY' | 'ERROR'>('INIT');
     const [persistence] = useState(new OfflinePersistence());
+    const [isListening, setIsListening] = useState(false);
 
     // NEW: Credit State
     const [showCreditModal, setShowCreditModal] = useState(false);
@@ -49,13 +53,13 @@ export const PointOfSale: React.FC = () => {
             .catch(() => setDbStatus('ERROR'));
     }, [persistence]);
 
-    const addToCart = (product: typeof PRODUCTS[0]) => {
+    const addToCart = (product: typeof PRODUCTS[0] & { qty?: number }) => {
         setCart(prev => {
             const existing = prev.find(p => p.sku === product.sku);
             if (existing) {
-                return prev.map(p => p.sku === product.sku ? { ...p, qty: p.qty + 1 } : p);
+                return prev.map(p => p.sku === product.sku ? { ...p, qty: p.qty + (product.qty || 1) } : p);
             }
-            return [...prev, { ...product, qty: 1 }];
+            return [...prev, { ...product, qty: product.qty || 1 }];
         });
     };
 
@@ -100,6 +104,45 @@ export const PointOfSale: React.FC = () => {
         }
     };
 
+    // Voice Handler
+    const handleVoiceCommand = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Browser tidak support Web Speech API (Gunakan Chrome)");
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const recognition = new (window as any).webkitSpeechRecognition();
+        recognition.lang = 'id-ID';
+        recognition.start();
+        setIsListening(true);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            const result = VoiceCommandKernel.parse(transcript);
+
+            if (result.intent === 'ADD_TO_CART' && result.productKeyword) {
+                const sku = VoiceCommandKernel.findBestMatch(result.productKeyword, PRODUCTS);
+                if (sku) {
+                    const product = PRODUCTS.find(p => p.sku === sku);
+                    if (product) {
+                        addToCart({ ...product, qty: result.qty || 1 });
+                        alert(`🎤 Added: ${product.name} (x${result.qty})`);
+                    }
+                } else {
+                    alert(`🎤 Produk tidak ditemukan: "${result.productKeyword}"`);
+                }
+            } else if (result.intent === 'CHECKOUT') {
+                handleCheckout('CASH');
+            }
+
+            setIsListening(false);
+        };
+
+        recognition.onerror = () => setIsListening(false);
+    };
+
     // Filter Products
     const filteredProducts = PRODUCTS.filter(p =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -111,7 +154,7 @@ export const PointOfSale: React.FC = () => {
             {/* Left: Product Grid */}
             <div className="w-2/3 flex flex-col p-6 gap-6">
                 {/* Header & Search */}
-                <div className="flex justify-between items-center bg-white p-4rounded-2xl shadow-sm">
+                <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-warung-orange rounded-lg flex items-center justify-center text-white font-bold shadow-md">POS</div>
                         <div>
@@ -122,13 +165,22 @@ export const PointOfSale: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    <input
-                        type="text"
-                        placeholder="🔍 Cari Barang (F1)"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="w-64 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-warung-teal outline-none text-sm"
-                    />
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleVoiceCommand}
+                            className={`p-3 rounded-xl font-bold transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            title="Voice Command"
+                        >
+                            <i className={`fas ${isListening ? 'fa-microphone-slash' : 'fa-microphone'}`}></i>
+                        </button>
+                        <input
+                            type="text"
+                            placeholder="🔍 Cari Barang (F1)"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-64 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-warung-teal outline-none text-sm"
+                        />
+                    </div>
                 </div>
 
                 {/* Product Grid */}

@@ -1,23 +1,30 @@
 import React, { useMemo, useState } from 'react';
 import { TransactionSeeder } from '../../core/generators/TransactionSeeder';
 import { ForensicsEngine } from '../../core/engines/ForensicsEngine';
-import { TaxComplianceEngine } from '../../core/engines/TaxComplianceEngine'; // Import
+import { TaxComplianceEngine } from '../../core/engines/TaxComplianceEngine';
+import { AuditSimulatorEngine } from '../../core/engines/AuditSimulatorEngine';
 import { SKU } from '../../core/types/InventoryTypes';
 
 export const AnalyticsDashboard: React.FC = () => {
     const [seedKey, setSeedKey] = useState(0);
 
-    const { data, insights, taxReport } = useMemo(() => {
+    const { data, insights, taxReport, auditReport } = useMemo(() => {
         const mockSkus = ['SKU-001', 'SKU-002', 'SKU-003'] as unknown as SKU[];
         const rawData = TransactionSeeder.generateHistory(mockSkus);
         const analysis = ForensicsEngine.analyze(rawData);
 
-        // NEW: Generate Tax Report based on transaction data
-        // Map raw data to simple format { id, total } for the engine
+        // Tax Logic
         const simpleTx = rawData.map(r => ({ id: r.id, total: r.totalAmount }));
-        const report = TaxComplianceEngine.generateReport(simpleTx, false); // Non-PKP default
+        const report = TaxComplianceEngine.generateReport(simpleTx, false);
 
-        return { data: rawData, insights: analysis, taxReport: report };
+        // NEW: Run Audit Simulation
+        // We need mock inventory for this engine
+        const mockInvForAudit = Array.from({ length: 20 }).map((_, i) => ({
+            sku: `SKU-${i}`, name: `Item ${i}`, currentStock: 50, purchasePrice: 10000
+        })) as any[];
+        const audit = AuditSimulatorEngine.runAudit(mockInvForAudit, rawData);
+
+        return { data: rawData, insights: analysis, taxReport: report, auditReport: audit };
     }, [seedKey]);
 
     return (
@@ -32,7 +39,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 </button>
             </header>
 
-            {/* Insight Cards (Existing) */}
+            {/* Insight Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-warung-teal">
                     <p className="text-xs font-bold text-gray-400 uppercase">Total Revenue</p>
@@ -46,7 +53,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <p className="text-xs font-bold text-gray-400 uppercase">Fraud Risk</p>
                     <p className="text-2xl font-mono font-bold text-red-500 mt-2">{insights.fraudRiskScore.toFixed(3)}%</p>
                 </div>
-                {/* NEW: Tax Card */}
+                {/* Tax Card */}
                 <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 opacity-20 text-6xl"><i className="fas fa-file-invoice-dollar"></i></div>
                     <p className="text-xs font-bold opacity-80 uppercase">Estimasi PPh Final (0.5%)</p>
@@ -55,7 +62,14 @@ export const AnalyticsDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* ... (Rest of the dashboard: Transaction List) ... */}
+            {/* NEW: Audit Score Card */}
+            <div className={`p-6 rounded-2xl shadow-lg border-l-4 ${auditReport.complianceScore > 80 ? 'border-green-500' : 'border-red-500'} bg-white`}>
+                <p className="text-xs font-bold text-gray-400 uppercase">Inventory Integrity</p>
+                <p className="text-2xl font-mono font-bold text-gray-800 mt-2">{auditReport.complianceScore}%</p>
+                <p className="text-xs text-red-400 mt-1">Variance: -Rp {auditReport.totalVariance.toLocaleString()}</p>
+            </div>
+
+            {/* Transaction List */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                     <h3 className="font-heading text-lg text-gray-700">Live Transaction Feed</h3>
