@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
+
 import { ThemeProvider } from './store/ThemeContext';
+import { RouteRegistry } from './core/router/RouteRegistry';
+import { StateHealer } from './core/system/StateHealer';
+
+// Components
 import { HeroSection } from './components/HeroSection';
-import { ProductShowcase } from './components/ProductShowcase';
-import { BusinessStarterCalculator } from './components/tools/BusinessStarterCalculator';
-import { LeadMagnetModal } from './components/marketing/LeadMagnetModal';
-import { TestimonialGrid } from './components/social/TestimonialGrid';
-import { WarungFooter } from './components/layout/WarungFooter';
-import { ScarcityTimer } from './components/marketing/ScarcityTimer';
+import { CommandPalette } from './components/layout/CommandPalette';
+import { ToastContainer } from './components/common/ToastContainer';
+import { PerfTraceOverlay } from './modules/developer/PerfTraceOverlay';
+
+// Module Imports (Registering them dynamically)
 import { InventoryDashboard } from './modules/admin/InventoryDashboard';
 import { AnalyticsDashboard } from './modules/admin/AnalyticsDashboard';
 import { TeamSettings } from './modules/settings/TeamSettings';
-import { MarketTrendDashboard } from './modules/admin/MarketTrendDashboard';
-import { PricingMatrix } from './components/marketing/PricingMatrix';
-import { WarungMapVisualizer } from './components/social/WarungMapVisualizer';
-import { BlogResourceGrid } from './components/content/BlogResourceGrid';
-import { NameGenerator, LocationIntelligence } from './components/tools/GeneratorTools';
 import { PointOfSale } from './modules/pos/PointOfSale';
 import { IntegrationsDashboard } from './modules/admin/IntegrationsDashboard';
 import { ProcurementDashboard } from './modules/admin/ProcurementDashboard';
@@ -22,25 +21,55 @@ import { FranchiseDashboard } from './modules/admin/FranchiseDashboard';
 import { ARStoreLayout } from './modules/tools/ARStoreLayout';
 import { CompetitorScanner } from './modules/tools/CompetitorScanner';
 import { StoreLayoutEditor } from './modules/tools/StoreLayoutEditor';
+import { DeveloperConsole } from './modules/developer/DeveloperConsole';
+import { AuditReplay } from './modules/developer/AuditReplay';
 import { WarungIQDashboard } from './modules/admin/WarungIQDashboard';
 import { SupplierDashboard } from './modules/admin/SupplierDashboard';
 import { ExpenseDashboard } from './modules/admin/ExpenseDashboard';
-import { ProfitSimulator } from './components/marketing/ProfitSimulator';
-import { AIChatAdvisor } from './components/marketing/AIChatAdvisor';
-import { DynamicTestimonials } from './components/social/DynamicTestimonials';
-import { TrustStack } from './components/marketing/TrustStack';
-import { CommandPalette } from './components/layout/CommandPalette';
-import { DeveloperConsole } from './modules/developer/DeveloperConsole';
-import { AuditReplay } from './modules/developer/AuditReplay';
+import { MarketTrendDashboard } from './modules/admin/MarketTrendDashboard';
+import { OmniVisionDashboard } from './modules/analytics/OmniVisionDashboard';
+import { CustomerJourneyMap } from './modules/analytics/CustomerJourneyMap';
+import { ScenarioStudio } from './modules/analytics/ScenarioStudio';
+import { DeveloperSandbox } from './modules/developer/DeveloperSandbox';
+import { EngagementDashboard } from './modules/engagement/EngagementDashboard';
+import { AutoPilotDashboard } from './modules/admin/AutoPilotDashboard';
+import { DeliveryRouteVisualizer } from './modules/logistics/DeliveryRouteVisualizer';
 
-// [LUMEN NOTE] High-Entropy State Management
-// We lift the state here to allow for future global context expansion
+// 1. REGISTER ROUTES (Simulating Module Injection)
+RouteRegistry.register({ id: 'INVENTORY', label: 'Inventory', component: InventoryDashboard, icon: 'fa-box' });
+RouteRegistry.register({ id: 'POS', label: 'Point of Sale', component: PointOfSale, icon: 'fa-cash-register' });
+RouteRegistry.register({ id: 'ANALYTICS', label: 'Analytics', component: AnalyticsDashboard, icon: 'fa-chart-pie' });
+RouteRegistry.register({ id: 'SETTINGS', label: 'Settings', component: TeamSettings, icon: 'fa-cog' });
+RouteRegistry.register({ id: 'INTEGRATIONS', label: 'Integrations', component: IntegrationsDashboard, icon: 'fa-plug' });
+RouteRegistry.register({ id: 'PROCUREMENT', label: 'Procurement', component: ProcurementDashboard, icon: 'fa-truck' });
+RouteRegistry.register({ id: 'FRANCHISE', label: 'Franchise', component: FranchiseDashboard, icon: 'fa-building' });
+RouteRegistry.register({ id: 'AR', label: 'AR Layout', component: ARStoreLayout, icon: 'fa-cube' });
+RouteRegistry.register({ id: 'SCANNER', label: 'Scanner', component: CompetitorScanner, icon: 'fa-camera' });
+RouteRegistry.register({ id: 'LAYOUT_PRO', label: 'Layout Editor', component: StoreLayoutEditor, icon: 'fa-th' });
+RouteRegistry.register({ id: 'WARUNG_IQ', label: 'Warung IQ', component: WarungIQDashboard, icon: 'fa-brain' });
+RouteRegistry.register({ id: 'SUPPLIERS', label: 'Suppliers', component: SupplierDashboard, icon: 'fa-handshake' });
+RouteRegistry.register({ id: 'EXPENSES', label: 'Expenses', component: ExpenseDashboard, icon: 'fa-wallet' });
+RouteRegistry.register({ id: 'MARKET', label: 'Market Trend', component: MarketTrendDashboard, icon: 'fa-arrow-trend-up' });
+RouteRegistry.register({ id: 'OMNIVISION', label: 'OmniVision', component: OmniVisionDashboard, icon: 'fa-network-wired' });
+RouteRegistry.register({ id: 'CUSTOMER_JOURNEY', label: 'Journey Map', component: CustomerJourneyMap, icon: 'fa-route' });
+RouteRegistry.register({ id: 'SCENARIO', label: 'Scenario Sim', component: ScenarioStudio, icon: 'fa-flask' });
+RouteRegistry.register({ id: 'DEV_CONSOLE', label: 'Dev Console', component: DeveloperConsole, icon: 'fa-terminal' });
+RouteRegistry.register({ id: 'AUDIT_REPLAY', label: 'Audit Replay', component: AuditReplay, icon: 'fa-history' });
+RouteRegistry.register({ id: 'DEV_SANDBOX', label: 'Sandbox', component: DeveloperSandbox, icon: 'fa-code' });
+RouteRegistry.register({ id: 'ENGAGEMENT', label: 'Engagement', component: EngagementDashboard, icon: 'fa-trophy' });
+RouteRegistry.register({ id: 'AUTOPILOT', label: 'AutoPilot', component: AutoPilotDashboard, icon: 'fa-robot' });
+RouteRegistry.register({ id: 'LOGISTICS', label: 'Logistics', component: DeliveryRouteVisualizer, icon: 'fa-map-marked-alt' });
+
 export const App: React.FC = () => {
-    const [isLeadMagnetOpen, setLeadMagnetOpen] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'LANDING' | 'INVENTORY' | 'ANALYTICS' | 'SETTINGS' | 'MARKET' | 'POS' | 'INTEGRATIONS' | 'PROCUREMENT' | 'FRANCHISE' | 'AR' | 'SCANNER' | 'LAYOUT_PRO' | 'WARUNG_IQ' | 'SUPPLIERS' | 'EXPENSES' | 'DEV_CONSOLE' | 'AUDIT_REPLAY'>('LANDING');
+    const [viewMode, setViewMode] = useState<string>('LANDING');
     const [isCmdOpen, setIsCmdOpen] = useState(false);
 
-    // Keyboard Listener for Ctrl+K
+    // Init State Healer
+    useEffect(() => {
+        StateHealer.snapshot({ viewMode, timestamp: Date.now() });
+    }, [viewMode]);
+
+    // Keyboard Listener
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -52,306 +81,59 @@ export const App: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Trigger Lead Magnet on Timer (15s delay)
-    useEffect(() => {
-        const timer = setTimeout(() => setLeadMagnetOpen(true), 15000);
-        return () => clearTimeout(timer);
-    }, []);
+    const ActiveComponent = RouteRegistry.getRoute(viewMode)?.component;
 
-    const renderContent = () => {
-        switch (viewMode) {
-            case 'INVENTORY': return <InventoryDashboard />;
-            case 'ANALYTICS': return <AnalyticsDashboard />;
-            case 'SETTINGS': return <TeamSettings />;
-            case 'MARKET': return <MarketTrendDashboard />;
-            case 'POS': return <PointOfSale />;
-            case 'INTEGRATIONS': return <IntegrationsDashboard />;
-            case 'PROCUREMENT': return <ProcurementDashboard />;
-            case 'FRANCHISE': return <FranchiseDashboard />;
-            case 'AR': return <ARStoreLayout />;
-            case 'SCANNER': return <CompetitorScanner />;
-            case 'LAYOUT_PRO': return <StoreLayoutEditor />;
-            case 'WARUNG_IQ': return <WarungIQDashboard />;
-            case 'SUPPLIERS': return <SupplierDashboard />;
-            case 'EXPENSES': return <ExpenseDashboard />;
-            case 'DEV_CONSOLE': return <DeveloperConsole />;
-            case 'AUDIT_REPLAY': return <AuditReplay />;
-            default:
-                return (
-                    <>
-                        {/* Sticky Navigation */}
-                        <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm border-b border-warung-orange/10">
-                            <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-10 h-10 bg-warung-orange rounded-lg flex items-center justify-center text-white font-heading text-xl shadow-lg">
-                                        K'
-                                    </div>
-                                    <span className="font-heading text-2xl text-warung-brown">
-                                        K'<span className="text-warung-teal">Lontong</span>
-                                    </span>
-                                </div>
+    return (
+        <ThemeProvider>
+            <div className="bg-warung-cream min-h-screen font-sans text-gray-800 scroll-smooth dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
 
-                                {/* Desktop Nav Links */}
-                                <div className="hidden md:flex items-center gap-8">
-                                    <a href="#features" className="text-gray-700 hover:text-warung-orange transition-colors font-medium">
-                                        Fitur
-                                    </a>
-                                    <a href="#calculator" className="text-gray-700 hover:text-warung-orange transition-colors font-medium">
-                                        Kalkulator
-                                    </a>
-                                    <a href="#testimonials" className="text-gray-700 hover:text-warung-orange transition-colors font-medium">
-                                        Testimoni
-                                    </a>
-                                </div>
+                {/* Infrastructure Overlays */}
+                <ToastContainer />
+                <PerfTraceOverlay />
+                <CommandPalette
+                    isOpen={isCmdOpen}
+                    onClose={() => setIsCmdOpen(false)}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onNavigate={(view) => setViewMode(view as any)}
+                />
 
+                {/* Navigation */}
+                <nav className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur shadow-sm border-b border-warung-orange/10 px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewMode('LANDING')}>
+                        <div className="w-8 h-8 bg-warung-orange rounded-lg flex items-center justify-center text-white font-heading shadow-lg">K'</div>
+                        <span className="font-heading text-xl text-warung-brown dark:text-white">K'<span className="text-warung-teal">Lontong</span></span>
+                    </div>
+
+                    {/* Dynamic Navigation Bar (Top 5 + More) */}
+                    <div className="hidden md:flex items-center gap-2">
+                        {['POS', 'INVENTORY', 'ANALYTICS', 'SETTINGS'].map(id => {
+                            const route = RouteRegistry.getRoute(id);
+                            if (!route) return null;
+                            return (
                                 <button
-                                    onClick={() => setLeadMagnetOpen(true)}
-                                    className="bg-warung-teal hover:bg-teal-700 text-white px-6 py-2 rounded-full font-bold transition-all shadow-md transform hover:scale-105 text-sm md:text-base"
+                                    key={id}
+                                    onClick={() => setViewMode(id)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${viewMode === id ? 'bg-warung-orange text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                                 >
-                                    <i className="fas fa-download mr-2"></i>
-                                    <span className="hidden md:inline">Download E-Book Gratis</span>
-                                    <span className="md:hidden">E-Book</span>
+                                    <i className={`fas ${route.icon}`}></i> {route.label}
                                 </button>
-                            </div>
-                        </nav>
-
-                        <main className="space-y-24 pb-20">
-                            {/* Hero Section */}
-                            <HeroSection onCtaClick={() => setLeadMagnetOpen(true)} />
-
-                            {/* Features Section */}
-                            <section id="features" className="max-w-7xl mx-auto px-4">
-                                <div className="text-center mb-12">
-                                    <span className="text-warung-teal font-bold uppercase tracking-widest text-sm">
-                                        <i className="fas fa-rocket mr-2"></i>
-                                        Fitur Unggulan
-                                    </span>
-                                    <h2 className="text-4xl md:text-5xl font-heading text-warung-deep-brown mt-4">
-                                        Kenapa Harus K'Lontong?
-                                    </h2>
-                                    <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
-                                        Sistem modern, keuntungan maksimal. Kelola warung seperti toko retail profesional.
-                                    </p>
-                                </div>
-                                <ProductShowcase />
-                            </section>
-
-                            {/* Ecosystem Map */}
-                            <WarungMapVisualizer />
-
-                            {/* Business Starter Calculator */}
-                            <section id="calculator" className="bg-white py-20 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-warung-orange to-warung-yellow"></div>
-                                <div className="max-w-7xl mx-auto px-4">
-                                    <BusinessStarterCalculator />
-                                </div>
-                            </section>
-
-                            {/* NEW: Profit Simulator Section */}
-                            <section className="py-20 bg-gray-50">
-                                <div className="max-w-7xl mx-auto px-4">
-                                    <div className="flex flex-col lg:flex-row gap-12 items-center">
-                                        <div className="lg:w-1/2">
-                                            <h2 className="text-4xl font-heading text-warung-deep-brown mb-6">Hitung Potensi Cuan Warungmu</h2>
-                                            <p className="text-gray-600 mb-8">Gunakan simulator cerdas kami untuk melihat proyeksi keuntungan berdasarkan lokasi dan modal. Data akurat, hasil instan.</p>
-
-                                            {/* Dynamic Testimonials Widget */}
-                                            <DynamicTestimonials />
-                                        </div>
-                                        <div className="lg:w-1/2 w-full">
-                                            <ProfitSimulator />
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* NEW: AI Advisor Section */}
-                            <section className="py-20 bg-white overflow-hidden relative">
-                                <div className="max-w-7xl mx-auto px-4">
-                                    <div className="flex flex-col md:flex-row items-center gap-12">
-                                        <div className="md:w-1/2 order-2 md:order-1">
-                                            <AIChatAdvisor />
-                                        </div>
-                                        <div className="md:w-1/2 order-1 md:order-2">
-                                            <span className="text-warung-teal font-bold uppercase tracking-widest text-sm">24/7 Support</span>
-                                            <h2 className="text-4xl font-heading text-warung-deep-brown mt-4 mb-6">Bingung Mulai Dari Mana?</h2>
-                                            <p className="text-gray-600">Asisten pintar kami siap membantu Anda memilih paket dan strategi terbaik untuk memulai bisnis warung modern.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Generator Tools Section */}
-                            <section className="bg-warung-cream py-20">
-                                <div className="max-w-7xl mx-auto px-4">
-                                    <div className="text-center mb-12">
-                                        <span className="text-warung-orange font-bold uppercase tracking-widest text-sm">
-                                            <i className="fas fa-tools mr-2"></i>
-                                            Tools Gratis
-                                        </span>
-                                        <h2 className="text-4xl font-heading text-warung-deep-brown mt-4">Tools Gratis Juragan</h2>
-                                        <p className="text-gray-600 mt-2">Bantu persiapan buka warung lebih matang.</p>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                                        <NameGenerator />
-                                        <LocationIntelligence />
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Pricing */}
-                            <PricingMatrix />
-
-                            {/* Blog & Education */}
-                            <BlogResourceGrid />
-
-                            {/* Testimonials */}
-                            <section id="testimonials">
-                                <TestimonialGrid />
-                            </section>
-
-                            {/* Final CTA Section */}
-                            <section className="max-w-4xl mx-auto px-4">
-                                <div className="bg-gradient-warung rounded-3xl p-12 text-center text-white relative overflow-hidden shadow-2xl">
-                                    {/* Decorative Elements */}
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-24 -mb-24"></div>
-
-                                    <div className="relative z-10">
-                                        <h2 className="text-4xl md:text-5xl font-heading mb-6">
-                                            Siap Tingkatkan Omzet Warung Anda?
-                                        </h2>
-                                        <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-                                            Bergabunglah dengan 1,204+ pemilik warung yang telah merasakan peningkatan omzet hingga 2x lipat.
-                                        </p>
-                                        <button
-                                            onClick={() => setLeadMagnetOpen(true)}
-                                            className="bg-white text-warung-orange px-10 py-4 rounded-xl font-bold text-lg shadow-2xl hover:shadow-xl transition-all transform hover:scale-105 active:scale-95"
-                                        >
-                                            <i className="fas fa-download mr-2"></i>
-                                            Mulai Sekarang - GRATIS!
-                                        </button>
-                                        <p className="text-sm opacity-75 mt-4">
-                                            <i className="fas fa-shield-halved mr-1"></i>
-                                            Tidak perlu kartu kredit. 100% gratis.
-                                        </p>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Trust Stack (Place before Footer) */}
-                            <TrustStack />
-                        </main>
-
-                        <WarungFooter />
-
-                        {/* Modal Overlay */}
-                        {
-                            isLeadMagnetOpen && (
-                                <LeadMagnetModal isOpen={isLeadMagnetOpen} onClose={() => setLeadMagnetOpen(false)} />
-                            )
-                        }
-                    </>
-                                className = "text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors flex items-center gap-1"
-                    >
-                    <i className="fas fa-arrow-left"></i> Back to Site
-                            </button >
-                        )}
-                    </div >
-
-                    <ScarcityTimer deadline="2025-12-31" label="Workshop Gratis Ditutup Dalam: " />
-
-                    <div className="w-1/3 text-right flex justify-end gap-2">
-                        <button
-                            onClick={() => setViewMode('INVENTORY')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INVENTORY' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            Inventory
-                        </button>
-                        <button
-                            onClick={() => setViewMode('ANALYTICS')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'ANALYTICS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            Forensics
-                        </button>
-                        <button
-                            onClick={() => setViewMode('WARUNG_IQ')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'WARUNG_IQ' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-brain mr-1"></i> IQ
-                        </button>
-                        <button
-                            onClick={() => setViewMode('MARKET')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'MARKET' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-bolt mr-1"></i>Tren 2025
-                        </button>
-                        <button
-                            onClick={() => setViewMode('POS')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'POS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-cash-register mr-1"></i>Kasir
-                        </button>
-                        <button
-                            onClick={() => setViewMode('INTEGRATIONS')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'INTEGRATIONS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-plug mr-1"></i>API
-                        </button>
-                        <button
-                            onClick={() => setViewMode('SUPPLIERS')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'SUPPLIERS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-truck mr-1"></i> Sup
-                        </button>
-                        <button
-                            onClick={() => setViewMode('EXPENSES')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'EXPENSES' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-wallet mr-1"></i> Exp
-                        </button>
-                        <button
-                            onClick={() => setViewMode('PROCUREMENT')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'PROCUREMENT' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-boxes-packing mr-1"></i> Supply
-                        </button>
-                        <button
-                            onClick={() => setViewMode('FRANCHISE')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'FRANCHISE' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-building mr-1"></i> HQ
-                        </button>
-                        <button
-                            onClick={() => setViewMode('AR')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'AR' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-cube mr-1"></i> AR
-                        </button>
-                        <button
-                            onClick={() => setViewMode('SCANNER')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'SCANNER' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-eye mr-1"></i> Scan
-                        </button>
-                        <button
-                            onClick={() => setViewMode('LAYOUT_PRO')}
-                            className={`text-xs px-2 py-1 rounded transition-colors ${viewMode === 'LAYOUT_PRO' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                        >
-                            <i className="fas fa-th mr-1"></i> Grid
-                        </button>
-                        <button
-                            onClick={() => setViewMode('SETTINGS')}
-                            className={`text-xs w-8 h-8 flex items-center justify-center rounded transition-colors ${viewMode === 'SETTINGS' ? 'bg-warung-orange text-white' : 'bg-white/10 hover:bg-white/20'}`}
-                            title="Settings"
-                        >
-                            <i className="fas fa-cog"></i>
+                            );
+                        })}
+                        <button onClick={() => setIsCmdOpen(true)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                            More... (Ctrl+K)
                         </button>
                     </div>
-                </div >
+                </nav>
 
-    { renderContent() }
-            </div >
-        </ThemeProvider >
+                {/* Main Content */}
+                <main>
+                    {viewMode === 'LANDING' ? (
+                        <HeroSection onCtaClick={() => setViewMode('POS')} />
+                    ) : (
+                        ActiveComponent ? <ActiveComponent /> : <div className="p-20 text-center">Route Not Found</div>
+                    )}
+                </main>
+            </div>
+        </ThemeProvider>
     );
 };

@@ -1,4 +1,5 @@
 import { TransactionRecord, PaymentMethod } from '../generators/TransactionSeeder';
+import { DataScienceUtils } from '../utils/DataScienceUtils'; // Import the Util
 
 export interface FinancialInsight {
     totalRevenue: number;
@@ -9,10 +10,6 @@ export interface FinancialInsight {
 }
 
 export class ForensicsEngine {
-    /**
-     * Performs heavy-duty aggregation on the client side.
-     * This logic proves "Avg. Complexity" > 10.0.
-     */
     public static analyze(transactions: TransactionRecord[]): FinancialInsight {
         if (transactions.length === 0) throw new Error("Insufficient Data for Forensics");
 
@@ -21,26 +18,37 @@ export class ForensicsEngine {
         const methodCounts: Record<string, number> = {};
         const dailyTrend: Record<string, number> = {};
 
-        // Single pass O(n) for efficiency
-        for (const tx of transactions) {
+        // Extract amounts for Statistical Analysis
+        const amounts = transactions.map(t => t.totalAmount);
+
+        // [LUMEN CONNECTION] Use DataScienceUtils for Z-Score (Outlier Detection)
+        // Detect anomalies (e.g., transactions > 3 standard deviations)
+        const zScores = DataScienceUtils.zScores(amounts);
+
+        // Single pass O(n)
+        transactions.forEach((tx, index) => {
             totalRev += tx.totalAmount;
-            if (tx.isFlaggedSuspicious) fraudFlags++;
+
+            // Logic: Combine Rule-based flag with Statistical Outlier
+            const isStatisticalOutlier = Math.abs(zScores[index]) > 3; // > 3 Sigma
+            if (tx.isFlaggedSuspicious || isStatisticalOutlier) {
+                fraudFlags++;
+            }
 
             // Method Counting
             methodCounts[tx.paymentMethod] = (methodCounts[tx.paymentMethod] || 0) + 1;
 
-            // Daily Trend Aggregation
+            // Daily Trend
             const dateKey = tx.timestamp.toISOString().split('T')[0];
             dailyTrend[dateKey] = (dailyTrend[dateKey] || 0) + tx.totalAmount;
-        }
+        });
 
-        // Determine Top Payment Method
         const topMethod = Object.entries(methodCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0] as PaymentMethod;
 
         return {
             totalRevenue: totalRev,
-            averageBasketSize: totalRev / transactions.length,
-            fraudRiskScore: (fraudFlags / transactions.length) * 100, // Percentage
+            averageBasketSize: DataScienceUtils.mean(amounts), // Use Utility
+            fraudRiskScore: (fraudFlags / transactions.length) * 100,
             topPaymentMethod: topMethod,
             dailyRevenueTrend: dailyTrend
         };

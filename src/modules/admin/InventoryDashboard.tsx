@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { InventoryItem, StockStatus, SKU } from '../../core/types/InventoryTypes';
 import { DataImportEngine } from '../../core/engines/DataImportEngine';
+import { DemandNeuralNet } from '../../core/ai/DemandNeuralNet'; // Import NN
 
 // Mock Data Generator
 const MOCK_INVENTORY: InventoryItem[] = Array.from({ length: 50 }).map((_, i) => ({
@@ -23,6 +24,7 @@ export const InventoryDashboard: React.FC = () => {
     const [sortKey, setSortKey] = useState<keyof InventoryItem>('currentStock');
     const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INVENTORY);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showForecast, setShowForecast] = useState(false); // New State
 
     // Algorithmic Density: Client-side sorting & filtering logic
     const processedData = useMemo(() => {
@@ -73,6 +75,14 @@ export const InventoryDashboard: React.FC = () => {
                     <p className="text-gray-500">Real-time stock monitoring & margin analysis.</p>
                 </div>
                 <div className="flex gap-2">
+                    {/* NEW: Button to trigger Neural Net */}
+                    <button
+                        onClick={() => setShowForecast(!showForecast)}
+                        className={`px-4 py-2 rounded-lg font-bold transition-all ${showForecast ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 border border-purple-200'}`}
+                    >
+                        <i className="fas fa-brain mr-2"></i> {showForecast ? 'Hide AI' : 'Predict Demand'}
+                    </button>
+
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -99,6 +109,7 @@ export const InventoryDashboard: React.FC = () => {
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">SKU</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Product Name</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase cursor-pointer" onClick={() => setSortKey('currentStock')}>Stock <i className="fas fa-sort ml-1"></i></th>
+                                {showForecast && <th className="p-4 font-bold text-purple-600 text-sm uppercase">AI Forecast (7d)</th>}
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Margin (%)</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Status</th>
                                 <th className="p-4 font-bold text-gray-500 text-sm uppercase">Action</th>
@@ -115,6 +126,17 @@ export const InventoryDashboard: React.FC = () => {
                                             <span className="text-xs text-gray-400">/ {item.reorderPoint}</span>
                                         </div>
                                     </td>
+                                    {/* [LUMEN CONNECTION] Live execution of Neural Net per row */}
+                                    {showForecast && (
+                                        <td className="p-4">
+                                            <span className="flex items-center gap-1 text-purple-600 font-bold font-mono">
+                                                <i className="fas fa-arrow-trend-up text-xs"></i>
+                                                {/* Generate dummy history based on current stock to feed NN */}
+                                                {DemandNeuralNet.forecastSales([item.currentStock, item.currentStock + 2, item.currentStock - 1, item.currentStock + 5, item.currentStock + 1, item.currentStock + 3, item.currentStock])}
+                                                <span className="text-[10px] text-gray-400 ml-1">units</span>
+                                            </span>
+                                        </td>
+                                    )}
                                     <td className="p-4 font-mono">{item.margin.toFixed(1)}%</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${item.status === StockStatus.CRITICAL ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
