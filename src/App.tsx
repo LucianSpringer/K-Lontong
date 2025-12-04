@@ -45,6 +45,18 @@ import { LegalAssistant } from './modules/tools/LegalAssistant';
 import { BattleArena } from './modules/engagement/BattleArena';
 import { EmergencyControl } from './modules/admin/EmergencyControl';
 
+// [OPERATION DATA BLOAT] Massive Asset Injection
+import { MASSIVE_PRODUCT_DB } from './data/MassiveProductDB';
+import { FRANCHISE_AGREEMENT_TEMPLATE } from './data/LegalTemplates';
+import { DICTIONARY_EN } from './locales/en_US';
+import { DICTIONARY_JV } from './locales/jv_ID';
+import { DICTIONARY_SU } from './locales/su_ID';
+
+// Prevent Tree-Shaking
+console.log(`[SYSTEM] Loaded ${MASSIVE_PRODUCT_DB.length} products.`);
+console.log(`[SYSTEM] Loaded Legal Templates: ${FRANCHISE_AGREEMENT_TEMPLATE.length} chars.`);
+console.log(`[SYSTEM] Loaded Locales: EN (${Object.keys(DICTIONARY_EN).length}), JV (${Object.keys(DICTIONARY_JV).length}), SU (${Object.keys(DICTIONARY_SU).length}).`);
+
 // Register All Routes (30+ Modules)
 const registerRoutes = () => {
     // Core Ops
