@@ -1,87 +1,126 @@
 import React, { useState, useMemo } from 'react';
+import { CashflowEngine } from '../../core/engines/CashflowEngine';
 
 export const ScenarioStudio: React.FC = () => {
-    const [priceMod, setPriceMod] = useState(0); // % change
-    const [costMod, setCostMod] = useState(0); // % change
-    const [trafficMod, setTrafficMod] = useState(0); // % change
+    const [priceMod, setPriceMod] = useState(0);
+    const [costMod, setCostMod] = useState(0);
+    const [trafficMod, setTrafficMod] = useState(0);
 
-    // Base Metrics (Monthly)
-    const baseRev = 15000000;
-    const baseCost = 10000000;
-    const baseProfit = baseRev - baseCost;
+    // Base Data
+    const historicalRev = [12000000, 13500000, 11000000, 14200000, 15000000];
+    const currentBalance = 50000000;
 
     const simulation = useMemo(() => {
-        const newRev = baseRev * (1 + priceMod / 100) * (1 + trafficMod / 100);
-        const newCost = baseCost * (1 + costMod / 100) * (1 + trafficMod / 100 * 0.5); // Traffic increases variable cost slightly
-        const newProfit = newRev - newCost;
+        // 1. Adjust History based on modifiers to simulate "What-If"
+        const adjustedHistory = historicalRev.map(val =>
+            val * (1 + priceMod / 100) * (1 + trafficMod / 100)
+        );
 
-        return { revenue: newRev, cost: newCost, profit: newProfit };
+        // 2. Run the Heavy Engine
+        const projection = CashflowEngine.generateProjection(adjustedHistory, currentBalance, 30);
+
+        // 3. Calculate Totals
+        const totalRev = projection.revenue.reduce((a, b) => a + b, 0);
+
+        // Apply Cost Mod to the Engine's output
+        const totalCost = projection.expenses.reduce((a, b) => a + b, 0) * (1 + costMod / 100);
+
+        return {
+            revenue: totalRev,
+            cost: totalCost,
+            profit: totalRev - totalCost,
+            runway: projection.runwayMonths
+        };
     }, [priceMod, costMod, trafficMod]);
 
     return (
-        <div className="bg-gray-50 p-8 rounded-3xl min-h-screen animate-slide-in">
-            <header className="mb-8">
-                <h2 className="text-3xl font-heading text-warung-deep-brown">Scenario Studio</h2>
-                <p className="text-gray-500">Simulate business changes and project financial impact.</p>
+        <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+            <header className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Scenario Studio</h1>
+                    <p className="text-gray-500">Business Simulation & Forecasting</p>
+                </div>
+                <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                    <span className="text-sm text-gray-500">Runway Prediction:</span>
+                    <span className={`ml-2 font-bold ${simulation.runway > 12 ? 'text-green-600' : 'text-red-500'}`}>
+                        {simulation.runway > 24 ? '> 2 Years' : `${simulation.runway} Months`}
+                    </span>
+                </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Controls */}
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 space-y-8">
-                    <h3 className="font-bold text-gray-700">Variables</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-8">
+                    <h3 className="font-bold text-gray-700 border-b pb-2">Simulation Parameters</h3>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Pricing Strategy ({priceMod > 0 ? '+' : ''}{priceMod}%)</label>
-                        <input type="range" min="-50" max="50" value={priceMod} onChange={e => setPriceMod(Number(e.target.value))} className="w-full accent-blue-500" />
+                        <label className="flex justify-between text-sm font-medium text-gray-600 mb-2">
+                            <span>Pricing Strategy</span>
+                            <span className={priceMod > 0 ? 'text-green-600' : 'text-red-500'}>{priceMod > 0 ? '+' : ''}{priceMod}%</span>
+                        </label>
+                        <input
+                            type="range" min="-20" max="50" value={priceMod}
+                            onChange={(e) => setPriceMod(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-warung-orange"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Impact on Margin & Volume</p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Operational Cost ({costMod > 0 ? '+' : ''}{costMod}%)</label>
-                        <input type="range" min="-50" max="50" value={costMod} onChange={e => setCostMod(Number(e.target.value))} className="w-full accent-red-500" />
+                        <label className="flex justify-between text-sm font-medium text-gray-600 mb-2">
+                            <span>Operational Costs</span>
+                            <span className={costMod > 0 ? 'text-red-500' : 'text-green-600'}>{costMod > 0 ? '+' : ''}{costMod}%</span>
+                        </label>
+                        <input
+                            type="range" min="-10" max="30" value={costMod}
+                            onChange={(e) => setCostMod(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-warung-orange"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Overhead & COGS Adjustments</p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Customer Traffic ({trafficMod > 0 ? '+' : ''}{trafficMod}%)</label>
-                        <input type="range" min="-50" max="100" value={trafficMod} onChange={e => setTrafficMod(Number(e.target.value))} className="w-full accent-green-500" />
+                        <label className="flex justify-between text-sm font-medium text-gray-600 mb-2">
+                            <span>Foot Traffic</span>
+                            <span className={trafficMod > 0 ? 'text-green-600' : 'text-red-500'}>{trafficMod > 0 ? '+' : ''}{trafficMod}%</span>
+                        </label>
+                        <input
+                            type="range" min="-50" max="50" value={trafficMod}
+                            onChange={(e) => setTrafficMod(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-warung-orange"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Marketing & Location Impact</p>
                     </div>
                 </div>
 
                 {/* Results */}
-                <div className="md:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                     <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 text-center">
-                            <p className="text-xs text-gray-500 uppercase">Projected Revenue</p>
-                            <p className="text-2xl font-mono font-bold text-blue-600">Rp {simulation.revenue.toLocaleString()}</p>
+                        <div className="bg-white p-4 rounded-xl border border-gray-200">
+                            <p className="text-xs text-gray-500 uppercase font-bold">Projected Revenue</p>
+                            <p className="text-2xl font-bold text-gray-800 mt-1">
+                                Rp {simulation.revenue.toLocaleString()}
+                            </p>
                         </div>
-                        <div className="bg-white p-4 rounded-xl shadow border border-gray-100 text-center">
-                            <p className="text-xs text-gray-500 uppercase">Projected Cost</p>
-                            <p className="text-2xl font-mono font-bold text-red-500">Rp {simulation.cost.toLocaleString()}</p>
+                        <div className="bg-white p-4 rounded-xl border border-gray-200">
+                            <p className="text-xs text-gray-500 uppercase font-bold">Projected Cost</p>
+                            <p className="text-2xl font-bold text-red-600 mt-1">
+                                Rp {simulation.cost.toLocaleString()}
+                            </p>
                         </div>
-                        <div className={`p-4 rounded-xl shadow border text-center ${simulation.profit > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                            <p className="text-xs text-gray-500 uppercase">Net Profit</p>
-                            <p className={`text-2xl font-mono font-bold ${simulation.profit > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="bg-white p-4 rounded-xl border border-gray-200">
+                            <p className="text-xs text-gray-500 uppercase font-bold">Net Profit</p>
+                            <p className={`text-2xl font-bold mt-1 ${simulation.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 Rp {simulation.profit.toLocaleString()}
                             </p>
                         </div>
                     </div>
 
-                    {/* Visual Comparison */}
-                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 h-64 flex items-end justify-center gap-16">
-                        {/* Baseline */}
-                        <div className="w-24 flex flex-col items-center gap-2 group">
-                            <div className="text-xs font-bold text-gray-400">BASELINE</div>
-                            <div className="w-full bg-gray-300 rounded-t-lg" style={{ height: '50%' }}></div>
-                            <div className="text-sm font-bold">Rp {baseProfit.toLocaleString()}</div>
-                        </div>
-
-                        {/* Simulation */}
-                        <div className="w-24 flex flex-col items-center gap-2 group">
-                            <div className="text-xs font-bold text-warung-orange">SIMULATION</div>
-                            <div
-                                className={`w-full rounded-t-lg transition-all duration-500 ${simulation.profit > baseProfit ? 'bg-green-500' : 'bg-red-500'}`}
-                                style={{ height: `${Math.max(10, Math.min(100, (simulation.profit / (baseProfit * 2)) * 100))}%` }}
-                            ></div>
-                            <div className="text-sm font-bold">Rp {simulation.profit.toLocaleString()}</div>
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 h-64 flex items-center justify-center text-gray-400">
+                        <div className="text-center">
+                            <i className="fas fa-chart-area text-4xl mb-2"></i>
+                            <p>Interactive Projection Chart Placeholder</p>
+                            <p className="text-xs">(Requires Chart.js Integration)</p>
                         </div>
                     </div>
                 </div>

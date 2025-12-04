@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-
 import { ThemeProvider } from './store/ThemeContext';
 import { RouteRegistry } from './core/router/RouteRegistry';
 import { StateHealer } from './core/system/StateHealer';
+import { P2PSyncEngine } from './core/network/P2PSyncEngine';
 
 // Components
 import { HeroSection } from './components/HeroSection';
@@ -58,15 +58,16 @@ RouteRegistry.register({ id: 'AUDIT_REPLAY', label: 'Audit Replay', component: A
 RouteRegistry.register({ id: 'DEV_SANDBOX', label: 'Sandbox', component: DeveloperSandbox, icon: 'fa-code' });
 RouteRegistry.register({ id: 'ENGAGEMENT', label: 'Engagement', component: EngagementDashboard, icon: 'fa-trophy' });
 RouteRegistry.register({ id: 'AUTOPILOT', label: 'AutoPilot', component: AutoPilotDashboard, icon: 'fa-robot' });
-RouteRegistry.register({ id: 'LOGISTICS', label: 'Logistics', component: DeliveryRouteVisualizer, icon: 'fa-map-marked-alt' });
+RouteRegistry.register({ id: 'LOGISTICS', label: 'Logistics', component: DeliveryRouteVisualizer, icon: 'fa-map-signs' });
 
 export const App: React.FC = () => {
     const [viewMode, setViewMode] = useState<string>('LANDING');
     const [isCmdOpen, setIsCmdOpen] = useState(false);
 
-    // Init State Healer
+    // Init State Healer & P2P
     useEffect(() => {
         StateHealer.snapshot({ viewMode, timestamp: Date.now() });
+        P2PSyncEngine.scanForPeers();
     }, [viewMode]);
 
     // Keyboard Listener
@@ -86,31 +87,31 @@ export const App: React.FC = () => {
     return (
         <ThemeProvider>
             <div className="bg-warung-cream min-h-screen font-sans text-gray-800 scroll-smooth dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
-
+                
                 {/* Infrastructure Overlays */}
                 <ToastContainer />
                 <PerfTraceOverlay />
-                <CommandPalette
-                    isOpen={isCmdOpen}
-                    onClose={() => setIsCmdOpen(false)}
+                <CommandPalette 
+                    isOpen={isCmdOpen} 
+                    onClose={() => setIsCmdOpen(false)} 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onNavigate={(view) => setViewMode(view as any)}
                 />
 
                 {/* Navigation */}
                 <nav className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur shadow-sm border-b border-warung-orange/10 px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewMode('LANDING')}>
+                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewMode('LANDING')}>
                         <div className="w-8 h-8 bg-warung-orange rounded-lg flex items-center justify-center text-white font-heading shadow-lg">K'</div>
                         <span className="font-heading text-xl text-warung-brown dark:text-white">K'<span className="text-warung-teal">Lontong</span></span>
-                    </div>
-
-                    {/* Dynamic Navigation Bar (Top 5 + More) */}
-                    <div className="hidden md:flex items-center gap-2">
-                        {['POS', 'INVENTORY', 'ANALYTICS', 'SETTINGS'].map(id => {
+                     </div>
+                     
+                     {/* Dynamic Navigation Bar (Top 5 + More) */}
+                     <div className="hidden md:flex items-center gap-2">
+                        {['POS', 'INVENTORY', 'AUTOPILOT', 'LOGISTICS'].map(id => {
                             const route = RouteRegistry.getRoute(id);
                             if (!route) return null;
                             return (
-                                <button
+                                <button 
                                     key={id}
                                     onClick={() => setViewMode(id)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${viewMode === id ? 'bg-warung-orange text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
@@ -122,7 +123,7 @@ export const App: React.FC = () => {
                         <button onClick={() => setIsCmdOpen(true)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
                             More... (Ctrl+K)
                         </button>
-                    </div>
+                     </div>
                 </nav>
 
                 {/* Main Content */}
